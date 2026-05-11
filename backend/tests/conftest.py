@@ -9,8 +9,8 @@ from sqlalchemy.orm import sessionmaker
 os.environ["DATABASE_URL"] = "sqlite:///./test_job_tracker.db"
 os.environ["ENVIRONMENT"] = "test"
 
-from app.database import Base, get_db
-from main import app
+from app.database import Base, get_db  # noqa: E402
+from main import app  # noqa: E402
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_job_tracker.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
