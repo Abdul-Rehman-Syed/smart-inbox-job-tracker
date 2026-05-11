@@ -15,18 +15,31 @@ GitHub Actions builds and tests both applications. On `main`, it pushes the back
 ## Data Flow
 
 1. The React app calls the API client in `frontend/src/services/api.ts`.
-2. FastAPI validates payloads with Pydantic schemas.
-3. SQLAlchemy writes and reads rows from PostgreSQL.
-4. Responses are wrapped in `{ success, data, message }`.
-5. The frontend refreshes dashboard, table, and charts from `/api/jobs` and `/api/stats`.
+2. Users register or log in and receive a signed bearer token.
+3. FastAPI validates payloads with Pydantic schemas and resolves the current user from the token.
+4. SQLAlchemy writes and reads rows from PostgreSQL, always filtered by `user_id`.
+5. Responses are wrapped in `{ success, data, message }`.
+6. The frontend refreshes dashboard, table, and charts from `/api/jobs` and `/api/stats`.
 
 ## Database Schema
+
+`users`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | UUID | Primary key |
+| email | varchar(255) | Required, unique |
+| full_name | varchar(160) | Optional |
+| hashed_password | varchar(255) | PBKDF2 password hash |
+| created_at | timestamp | Auto |
+| updated_at | timestamp | Auto |
 
 `jobs`
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | UUID | Primary key |
+| user_id | UUID | Foreign key to users.id |
 | company | varchar(160) | Required, indexed |
 | job_title | varchar(200) | Required |
 | job_url | varchar(1000) | Required |
@@ -39,10 +52,19 @@ GitHub Actions builds and tests both applications. On `main`, it pushes the back
 
 ## API Documentation
 
+Auth:
+
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET /api/auth/me
+```
+
 Create:
 
 ```http
 POST /api/jobs
+Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {

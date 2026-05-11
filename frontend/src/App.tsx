@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import { AuthPanel } from './components/AuthPanel';
 import { Charts } from './components/Charts';
 import { Dashboard } from './components/Dashboard';
 import { Filters } from './components/Filters';
 import { JobForm } from './components/JobForm';
 import { JobList } from './components/JobList';
 import api from './services/api';
+import type { AuthResponse, User } from './types/API';
 import type { DateRange, Job, JobInput, JobStatus, Stats } from './types/Job';
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(Boolean(api.getToken()));
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>('all');
@@ -48,8 +52,43 @@ function App() {
   }
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    const token = api.getToken();
+    if (!token) {
+      setIsAuthLoading(false);
+      return;
+    }
+    api
+      .getMe()
+      .then((user) => {
+        setCurrentUser(user);
+      })
+      .catch(() => {
+        api.clearToken();
+      })
+      .finally(() => setIsAuthLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      refresh();
+    }
+  }, [currentUser, refresh]);
+
+  function handleAuth(auth: AuthResponse) {
+    api.setToken(auth.access_token);
+    setCurrentUser(auth.user);
+    showNotice(`Signed in as ${auth.user.email}.`);
+  }
+
+  function handleLogout() {
+    api.clearToken();
+    setCurrentUser(null);
+    setJobs([]);
+    setStats(null);
+    setEditingJob(null);
+    setNotice('');
+    setError('');
+  }
 
   async function handleSubmit(job: JobInput) {
     setError('');
@@ -94,14 +133,25 @@ function App() {
     }
   }
 
+  if (isAuthLoading) {
+    return <main className="app-shell">Loading account...</main>;
+  }
+
+  if (!currentUser) {
+    return <AuthPanel onLogin={handleAuth} login={api.login} register={api.register} />;
+  }
+
   return (
     <main className="app-shell">
       <header className="app-header">
         <div>
           <p className="eyebrow">Portfolio Job Tracker</p>
           <h1>Application Command Center</h1>
+          <p className="user-line">{currentUser.email}</p>
         </div>
-        <span className="health-dot" aria-label="Application ready" />
+        <button className="ghost-button" type="button" onClick={handleLogout}>
+          Log Out
+        </button>
       </header>
 
       {error && <div className="alert">{error}</div>}

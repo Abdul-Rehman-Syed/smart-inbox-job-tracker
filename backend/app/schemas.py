@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any, Dict, Generic, Optional, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, model_validator
 
 from app.models import JobStatus
 
@@ -61,6 +61,7 @@ class JobUpdate(BaseModel):
 
 class JobRead(JobBase):
     id: UUID
+    user_id: UUID
     job_url: str
     created_at: datetime
     updated_at: datetime
@@ -81,6 +82,32 @@ class Health(BaseModel):
     status: str
     environment: str
     database: str
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: Optional[str] = Field(default=None, max_length=160)
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserRead(BaseModel):
+    id: UUID
+    email: EmailStr
+    full_name: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserRead
 
 
 ApiData = Dict[str, Any]

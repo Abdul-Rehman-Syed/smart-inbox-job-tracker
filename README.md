@@ -1,6 +1,6 @@
-# Job Tracker
+# Smart Inbox Job Tracker
 
-A production-ready portfolio job application tracker built with React, TypeScript, FastAPI, PostgreSQL, Docker, and AWS free-tier-friendly deployment.
+A production-ready portfolio job application tracker built with React, TypeScript, FastAPI, PostgreSQL, Docker, and AWS free-tier-friendly deployment. The app now supports user accounts so each person only sees their own applications.
 
 ## Features
 
@@ -9,6 +9,8 @@ A production-ready portfolio job application tracker built with React, TypeScrip
 - Dashboard statistics for totals, interviews, rejections, and pending applications
 - Pie chart by status and bar chart for top companies
 - Date range and status filters
+- Email/password authentication with bearer tokens
+- User-owned job applications and dashboard statistics
 - Fully typed React API client
 - FastAPI response envelope and validation
 - Dockerized local and production workflows
@@ -94,6 +96,9 @@ All API responses use:
 
 Endpoints:
 
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 - `POST /api/jobs`
 - `GET /api/jobs?date_range=all|7d|30d&status=Applied`
 - `GET /api/jobs/{job_id}`
@@ -101,6 +106,12 @@ Endpoints:
 - `DELETE /api/jobs/{job_id}`
 - `GET /api/stats?date_range=all|7d|30d`
 - `GET /api/health`
+
+Job and stats endpoints require:
+
+```http
+Authorization: Bearer <access_token>
+```
 
 ## Deployment
 
@@ -114,6 +125,7 @@ The included GitHub Actions workflow runs tests on `develop` and deploys on `mai
 - `EC2_USER`
 - `EC2_KEY`
 - `DATABASE_URL`
+- `SECRET_KEY`
 - `API_BASE_URL`
 - `API_ALLOWED_ORIGINS`
 - `S3_BUCKET`

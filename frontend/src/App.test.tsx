@@ -29,12 +29,25 @@ const baseJob = {
   updated_at: '2026-05-11T00:00:00Z',
 };
 
+const baseUser = {
+  id: 'user-1',
+  email: 'test@example.com',
+  full_name: 'Test User',
+  created_at: '2026-05-11T00:00:00Z',
+};
+
 beforeEach(() => {
+  mockedApi.getToken.mockReturnValue('token');
+  mockedApi.getMe.mockResolvedValue(baseUser);
+  mockedApi.setToken.mockReturnValue(undefined);
+  mockedApi.clearToken.mockReturnValue(undefined);
   mockedApi.getJobs.mockResolvedValue([baseJob]);
   mockedApi.getStats.mockResolvedValue(baseStats);
   mockedApi.uploadJob.mockResolvedValue(baseJob);
   mockedApi.updateJob.mockResolvedValue(baseJob);
   mockedApi.deleteJob.mockResolvedValue(undefined);
+  mockedApi.login.mockResolvedValue({ access_token: 'token', token_type: 'bearer', user: baseUser });
+  mockedApi.register.mockResolvedValue({ access_token: 'token', token_type: 'bearer', user: baseUser });
 });
 
 test('renders dashboard statistics', async () => {
@@ -71,4 +84,10 @@ test('shows error when API load fails', async () => {
   mockedApi.getJobs.mockRejectedValueOnce(new Error('offline'));
   render(<App />);
   expect(await screen.findByText(/Could not load job applications/i)).toBeInTheDocument();
+});
+
+test('renders auth screen when logged out', async () => {
+  mockedApi.getToken.mockReturnValue(null);
+  render(<App />);
+  expect(await screen.findByText('Welcome back')).toBeInTheDocument();
 });

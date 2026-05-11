@@ -10,6 +10,8 @@ os.environ["DATABASE_URL"] = "sqlite:///./test_job_tracker.db"
 os.environ["ENVIRONMENT"] = "test"
 
 from app.database import Base, get_db  # noqa: E402
+from app.models import User  # noqa: E402
+from app.security import create_access_token, hash_password  # noqa: E402
 from main import app  # noqa: E402
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_job_tracker.db"
@@ -31,6 +33,15 @@ def db_session():
 
 @pytest.fixture()
 def client(db_session):
+    user = User(
+        email="test@example.com",
+        full_name="Test User",
+        hashed_password=hash_password("password123"),
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
     def override_get_db():
         try:
             yield db_session
@@ -39,6 +50,7 @@ def client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
+        test_client.headers.update({"Authorization": f"Bearer {create_access_token(user.id)}"})
         yield test_client
     app.dependency_overrides.clear()
 

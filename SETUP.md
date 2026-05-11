@@ -31,12 +31,21 @@ cd backend
 docker compose up --build
 ```
 
+If you created the local database before migrations were enabled and see an error about `jobstatus` already existing, run this one-time command and start Compose again:
+
+```bash
+docker compose run --rm api alembic stamp 0001_create_jobs
+docker compose up -d api
+```
+
 5. Access:
 
 - Frontend: `http://localhost:3000`
 - API docs: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/api/health`
 - Database UI: `http://localhost:8081`
+
+Create an account from the app login screen before adding applications. Jobs and stats are scoped to the logged-in user.
 
 Adminer login:
 

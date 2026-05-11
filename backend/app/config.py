@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = True
     allowed_origins: str = "http://localhost:3000,http://localhost:5173"
+    secret_key: str = "change-this-in-production"
+    access_token_expire_minutes: int = 1440
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

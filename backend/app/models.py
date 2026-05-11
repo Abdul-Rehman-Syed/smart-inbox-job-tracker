@@ -2,9 +2,9 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Numeric, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import CHAR, TypeDecorator
 
 from app.database import Base
@@ -45,6 +45,7 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False, index=True)
     company: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
     job_title: Mapped[str] = mapped_column(String(200), nullable=False)
     job_url: Mapped[str] = mapped_column(String(1000), nullable=False)
@@ -56,3 +57,18 @@ class Job(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
+    user: Mapped["User"] = relationship(back_populates="jobs")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    full_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    jobs: Mapped[list[Job]] = relationship(back_populates="user", cascade="all, delete-orphan")
