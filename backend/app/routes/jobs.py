@@ -71,10 +71,16 @@ def update_job(job_id: UUID, payload: JobUpdate, db: Session = Depends(get_db)):
         updates["job_url"] = str(updates["job_url"])
     if "salary_min" in updates and "salary_max" not in updates and job.salary_max is not None:
         if updates["salary_min"] is not None and updates["salary_min"] > job.salary_max:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="salary_min cannot be greater than salary_max")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="salary_min cannot be greater than salary_max",
+            )
     if "salary_max" in updates and "salary_min" not in updates and job.salary_min is not None:
         if updates["salary_max"] is not None and updates["salary_max"] < job.salary_min:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="salary_max cannot be less than salary_min")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="salary_max cannot be less than salary_min",
+            )
     for key, value in updates.items():
         setattr(job, key, value)
     db.commit()
