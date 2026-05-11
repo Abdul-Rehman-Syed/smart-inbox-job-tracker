@@ -27,6 +27,11 @@ def seed_demo_data():
             db.add(user)
             db.commit()
             db.refresh(user)
+        else:
+            user.full_name = "Demo User"
+            user.hashed_password = hash_password(DEMO_PASSWORD)
+            db.commit()
+            db.refresh(user)
 
         db.execute(delete(Job).where(Job.user_id == user.id))
 

@@ -242,6 +242,13 @@ select {
   align-items: start;
 }
 
+.list-column {
+  display: flex;
+  flex-direction: column;
+  max-height: 623px;
+  min-height: 0;
+}
+
 .job-form {
   padding: 18px;
 }
@@ -293,6 +300,9 @@ select {
 
 .table-shell {
   overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 table {
@@ -379,6 +389,10 @@ a {
   .charts,
   .content-grid {
     grid-template-columns: 1fr;
+  }
+
+  .list-column {
+    max-height: none;
   }
 
   .toolbar {
