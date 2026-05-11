@@ -2,6 +2,30 @@
 
 A production-ready portfolio job application tracker built with React, TypeScript, FastAPI, PostgreSQL, Docker, and AWS free-tier-friendly deployment. The app now supports user accounts so each person only sees their own applications.
 
+## Demo
+
+Local app:
+
+```text
+http://localhost:3000
+```
+
+Demo account:
+
+```text
+Email: demo@example.com
+Password: password123
+```
+
+Seed or refresh demo data:
+
+```bash
+cd backend
+docker compose run --rm api python scripts/seed_demo.py
+```
+
+The seed script only replaces jobs for the demo user.
+
 ## Features
 
 - Add, edit, delete, and track job applications
@@ -15,6 +39,16 @@ A production-ready portfolio job application tracker built with React, TypeScrip
 - FastAPI response envelope and validation
 - Dockerized local and production workflows
 - GitHub Actions test and deployment pipeline
+
+## What This Demonstrates
+
+- Full-stack CRUD with a React TypeScript frontend and FastAPI backend
+- Authenticated, user-owned data with JWT bearer tokens
+- PostgreSQL persistence through Docker Compose locally and AWS RDS in production
+- Dashboard statistics and charts from backend aggregation
+- Production-style Dockerfiles for frontend and backend
+- CI checks for backend formatting/lint/tests and frontend lint/tests/build
+- AWS-ready deployment structure for S3, CloudFront, EC2, ECR, and RDS
 
 ## Tech Stack
 
@@ -69,22 +103,6 @@ Username: job_tracker
 Password: 069358
 Database: job_tracker
 ```
-
-Demo account:
-
-```text
-Email: demo@example.com
-Password: password123
-```
-
-Seed or refresh demo data:
-
-```bash
-cd backend
-docker compose run --rm api python scripts/seed_demo.py
-```
-
-The seed script only replaces jobs for the demo user.
 
 ## Tests
 
@@ -158,7 +176,28 @@ See [SETUP.md](SETUP.md) for the complete AWS setup checklist and [SYSTEM_DESIGN
 
 ## Screenshots
 
-Add screenshots or a short demo GIF after the first deployment.
+Add these screenshots before or after the first deployment:
+
+```text
+docs/screenshots/login.png
+docs/screenshots/dashboard.png
+docs/screenshots/job-table.png
+```
+
+Suggested capture list:
+
+- Login/register screen
+- Dashboard with seeded demo account
+- Job table with status filters and scrolling list
+- Charts section
+
+Then embed them here:
+
+```md
+![Login screen](docs/screenshots/login.png)
+![Dashboard](docs/screenshots/dashboard.png)
+![Job table](docs/screenshots/job-table.png)
+```
 
 ## Contributing
 
