@@ -32,3 +32,13 @@ test('switches to registration mode', async () => {
   expect(screen.getByText('Create your workspace')).toBeInTheDocument();
   expect(screen.getByLabelText(/Name/i)).toBeInTheDocument();
 });
+
+test('logs in with demo account shortcut', async () => {
+  const user = userEvent.setup();
+  const login = jest.fn().mockResolvedValue(auth);
+  const onLogin = jest.fn();
+  render(<AuthPanel onLogin={onLogin} login={login} register={jest.fn()} />);
+  await user.click(screen.getByRole('button', { name: /Use demo account/i }));
+  expect(login).toHaveBeenCalledWith({ email: 'demo@example.com', password: 'password123' });
+  expect(onLogin).toHaveBeenCalledWith(auth);
+});

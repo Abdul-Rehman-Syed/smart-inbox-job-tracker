@@ -69,12 +69,20 @@ button {
   font-weight: 600;
 }
 
-.link-button {
+.link-button,
+.demo-button {
   width: 100%;
   background: transparent;
   color: #7ed5df;
   margin-top: 14px;
   min-height: 38px;
+}
+
+.demo-button {
+  border: 1px solid rgba(126, 213, 223, 0.35);
+  border-radius: 6px;
+  background: rgba(126, 213, 223, 0.08);
+  color: #d8fbff;
 }
 
 .app-header {

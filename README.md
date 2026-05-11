@@ -70,6 +70,22 @@ Password: 069358
 Database: job_tracker
 ```
 
+Demo account:
+
+```text
+Email: demo@example.com
+Password: password123
+```
+
+Seed or refresh demo data:
+
+```bash
+cd backend
+docker compose run --rm api python scripts/seed_demo.py
+```
+
+The seed script only replaces jobs for the demo user.
+
 ## Tests
 
 ```bash
@@ -132,6 +148,13 @@ The included GitHub Actions workflow runs tests on `develop` and deploys on `mai
 - `CLOUDFRONT_DISTRIBUTION_ID`
 
 See [SETUP.md](SETUP.md) for the complete AWS setup checklist and [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) for architecture details.
+
+## Roadmap
+
+- Email welcome/verification through AWS SES or another email provider
+- Google OAuth login
+- Email inbox sync for application updates
+- Demo screenshots and hosted portfolio walkthrough
 
 ## Screenshots
 

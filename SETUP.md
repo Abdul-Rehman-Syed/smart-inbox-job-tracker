@@ -57,6 +57,19 @@ Password: 069358
 Database: job_tracker
 ```
 
+Demo login:
+
+```text
+Email: demo@example.com
+Password: password123
+```
+
+Create or refresh demo data:
+
+```bash
+docker compose run --rm api python scripts/seed_demo.py
+```
+
 ## AWS Deployment Setup
 
 1. Create an AWS account and enable billing alerts.

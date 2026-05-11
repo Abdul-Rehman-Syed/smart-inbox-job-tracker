@@ -125,7 +125,7 @@ GET /api/health
 - RDS should be private and reachable only from EC2.
 - HTTPS is used through CloudFront and ALB or a reverse proxy.
 
-Authentication is intentionally not included in the first portfolio version. Add Cognito, Auth0, or session auth before storing personal multi-user data.
+The current version includes email/password authentication with signed bearer tokens. Email verification, welcome emails, and Google OAuth are planned follow-ups that require provider credentials and production callback URLs.
 
 ## Cost Analysis
 

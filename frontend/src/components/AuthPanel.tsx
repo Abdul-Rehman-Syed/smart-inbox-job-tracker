@@ -32,6 +32,19 @@ export function AuthPanel({ onLogin, login, register }: AuthPanelProps) {
     }
   }
 
+  async function handleDemoLogin() {
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const auth = await login({ email: 'demo@example.com', password: 'password123' });
+      onLogin(auth);
+    } catch {
+      setError('Demo account is not available yet. Run the demo seed script first.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <main className="auth-shell">
       <section className="auth-panel">
@@ -69,6 +82,11 @@ export function AuthPanel({ onLogin, login, register }: AuthPanelProps) {
             {isSubmitting ? 'Working...' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
+        {mode === 'login' && (
+          <button className="demo-button" type="button" onClick={handleDemoLogin} disabled={isSubmitting}>
+            Use demo account
+          </button>
+        )}
         <button
           className="link-button"
           type="button"

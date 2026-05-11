@@ -19,6 +19,7 @@ COPY app ./app
 COPY main.py .
 COPY alembic.ini .
 COPY migrations ./migrations
+COPY scripts ./scripts
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
     && chown -R appuser:appuser /app
