@@ -245,7 +245,7 @@ select {
 .list-column {
   display: flex;
   flex-direction: column;
-  max-height: 623px;
+  max-height: 584px;
   min-height: 0;
 }
 
