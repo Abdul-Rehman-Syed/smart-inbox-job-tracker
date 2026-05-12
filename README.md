@@ -4,6 +4,18 @@ A production-ready portfolio job application tracker built with React, TypeScrip
 
 ## Demo
 
+Production app:
+
+```text
+https://d2k57hwu6y8pci.cloudfront.net
+```
+
+Production health check:
+
+```text
+https://d2k57hwu6y8pci.cloudfront.net/api/health
+```
+
 Local app:
 
 ```text
@@ -48,14 +60,14 @@ The seed script only replaces jobs for the demo user.
 - Dashboard statistics and charts from backend aggregation
 - Production-style Dockerfiles for frontend and backend
 - CI checks for backend formatting/lint/tests and frontend lint/tests/build
-- AWS-ready deployment structure for S3, CloudFront, EC2, ECR, and RDS
+- AWS deployment with S3, CloudFront, EC2, ECR, RDS, and Systems Manager
 
 ## Tech Stack
 
 - Frontend: React 18, TypeScript, Recharts, Axios, Vite, Jest, React Testing Library
 - Backend: Python 3.11, FastAPI, SQLAlchemy 2, Pydantic 2, Alembic, pytest
 - Database: PostgreSQL on AWS RDS
-- Deployment: S3, CloudFront, EC2, ECR, RDS, ACM, optional ALB
+- Deployment: S3 private bucket, CloudFront, EC2, ECR, RDS, AWS Systems Manager
 
 ## Local Setup
 
@@ -149,21 +161,40 @@ Authorization: Bearer <access_token>
 
 ## Deployment
 
-The included GitHub Actions workflow runs tests on `develop` and deploys on `main`. Configure these secrets:
+The included GitHub Actions workflow runs tests on pushes and pull requests. Production deployment is triggered manually from the `main` branch through GitHub Actions `workflow_dispatch`.
+
+Current production architecture:
+
+- CloudFront serves the React frontend from private S3 bucket `sijt-frontend`.
+- CloudFront forwards `/api/*` requests to the EC2 backend origin.
+- EC2 runs the FastAPI Docker container and pulls images from ECR.
+- GitHub Actions deploys to EC2 through AWS Systems Manager Run Command, not public SSH.
+- RDS PostgreSQL stores persistent user and job data.
+
+Production URL:
+
+```text
+https://d2k57hwu6y8pci.cloudfront.net
+```
+
+Required GitHub Actions secrets:
 
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_REGION`
 - `ECR_REGISTRY`
-- `EC2_HOST`
-- `EC2_USER`
-- `EC2_KEY`
+- `EC2_INSTANCE_ID`
 - `DATABASE_URL`
 - `SECRET_KEY`
-- `API_BASE_URL`
 - `API_ALLOWED_ORIGINS`
 - `S3_BUCKET`
 - `CLOUDFRONT_DISTRIBUTION_ID`
+
+Recommended `API_ALLOWED_ORIGINS` value for local plus deployed frontend:
+
+```text
+http://localhost:3000,https://d2k57hwu6y8pci.cloudfront.net
+```
 
 See [SETUP.md](SETUP.md) for the complete AWS setup checklist and [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) for architecture details.
 
