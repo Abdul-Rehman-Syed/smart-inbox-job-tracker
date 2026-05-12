@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { ApiResponse, AuthResponse, User } from '../types/API';
 import type { Job, JobFilters, JobInput, Stats } from '../types/Job';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+const API_BASE_URL = typeof __API_BASE_URL__ !== 'undefined' ? __API_BASE_URL__ : 'http://localhost:8000/api';
 const TOKEN_STORAGE_KEY = 'job_tracker_token';
 
 const client = axios.create({
