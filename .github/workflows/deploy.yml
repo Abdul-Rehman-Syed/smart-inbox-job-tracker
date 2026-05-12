@@ -108,3 +108,17 @@ jobs:
             --output json
 
           exit "$WAIT_EXIT_CODE"
+
+      - name: Build frontend for CloudFront
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: /api
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload frontend to S3
+        run: aws s3 sync frontend/dist "s3://${{ secrets.S3_BUCKET }}" --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/*"
