@@ -15,7 +15,14 @@ depends_on = None
 
 
 def upgrade():
-    job_status = postgresql.ENUM("APPLIED", "INTERVIEW", "REJECTED", "OFFER", name="jobstatus")
+    job_status = postgresql.ENUM(
+        "APPLIED",
+        "INTERVIEW",
+        "REJECTED",
+        "OFFER",
+        name="jobstatus",
+        create_type=False,
+    )
     job_status.create(op.get_bind(), checkfirst=True)
     op.create_table(
         "jobs",
