@@ -3,6 +3,12 @@ name: Test and Deploy
 on:
   push:
     branches: [main, develop]
+    paths-ignore:
+      - 'README.md'
+      - 'SETUP.md'
+      - 'SYSTEM_DESIGN.md'
+      - 'infra/scheduler/**'
+      - '.github/workflows/seed-demo.yml'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -45,10 +51,10 @@ jobs:
       - run: npm run build
 
   deploy:
-    name: Deploy backend to AWS
+    name: Deploy to AWS
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
