@@ -70,6 +70,14 @@ Create or refresh demo data:
 docker compose run --rm api python scripts/seed_demo.py
 ```
 
+Create or refresh production demo data:
+
+```text
+GitHub -> Actions -> Seed Demo Data -> Run workflow -> main
+```
+
+This runs `backend/scripts/seed_demo.py` inside the latest backend Docker image through AWS Systems Manager. It updates only `demo@example.com` and that user's demo jobs.
+
 ## AWS Deployment Setup
 
 This project is deployed in `us-east-1` with a free-tier-friendly setup:

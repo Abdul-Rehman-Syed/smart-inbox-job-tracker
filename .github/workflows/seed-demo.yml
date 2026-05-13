@@ -1,0 +1,54 @@
+name: Seed Demo Data
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+jobs:
+  seed-demo:
+    name: Seed production demo account
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run demo seed on EC2 with SSM
+        env:
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Seed Smart Inbox Job Tracker demo account" \
+            --parameters commands="[
+              \"set -e\",
+              \"aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY\",
+              \"docker pull $ECR_REGISTRY/job-tracker-backend:latest\",
+              \"docker run --rm -e DATABASE_URL='$DATABASE_URL' -e ENVIRONMENT=production -e DEBUG=False -e SECRET_KEY='$SECRET_KEY' $ECR_REGISTRY/job-tracker-backend:latest python scripts/seed_demo.py\"
+            ]" \
+            --query "Command.CommandId" \
+            --output text)
+
+          set +e
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"
+          WAIT_EXIT_CODE=$?
+          set -e
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID" \
+            --query "{Status:Status,StandardOutputContent:StandardOutputContent,StandardErrorContent:StandardErrorContent}" \
+            --output json
+
+          exit "$WAIT_EXIT_CODE"

@@ -29,7 +29,7 @@ Email: demo@example.com
 Password: password123
 ```
 
-Seed or refresh demo data:
+Seed or refresh local demo data:
 
 ```bash
 cd backend
@@ -37,6 +37,14 @@ docker compose run --rm api python scripts/seed_demo.py
 ```
 
 The seed script only replaces jobs for the demo user.
+
+Seed or refresh production demo data:
+
+```text
+GitHub Actions -> Seed Demo Data -> Run workflow -> main
+```
+
+The production seed workflow runs the same script through AWS Systems Manager and the deployed backend image.
 
 ## Features
 
