@@ -53,6 +53,7 @@ The production seed workflow runs the same script through AWS Systems Manager an
 - Dashboard statistics for totals, interviews, rejections, and pending applications
 - Pie chart by status and bar chart for top companies
 - Date range and status filters
+- Expandable status history for each job application
 - Email/password authentication with bearer tokens
 - User-owned job applications and dashboard statistics
 - Fully typed React API client

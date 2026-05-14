@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from sqlalchemy import delete, select
 
 from app.database import SessionLocal
-from app.models import Job, JobStatus, User
+from app.models import Job, JobStatus, JobStatusHistory, User
 from app.security import hash_password
 
 DEMO_EMAIL = "demo@example.com"
@@ -33,6 +33,7 @@ def seed_demo_data():
             db.commit()
             db.refresh(user)
 
+        db.execute(delete(JobStatusHistory).where(JobStatusHistory.user_id == user.id))
         db.execute(delete(Job).where(Job.user_id == user.id))
 
         now = datetime.now(timezone.utc)
@@ -112,7 +113,19 @@ def seed_demo_data():
         ]
 
         for job_data in demo_jobs:
-            db.add(Job(user_id=user.id, **job_data))
+            job = Job(user_id=user.id, **job_data)
+            db.add(job)
+            db.flush()
+            db.add(
+                JobStatusHistory(
+                    job_id=job.id,
+                    user_id=user.id,
+                    old_status=None,
+                    new_status=job.status.value,
+                    source="seed",
+                    note="Demo application created",
+                )
+            )
         db.commit()
         print(f"Seeded {len(demo_jobs)} jobs for {DEMO_EMAIL}")
     finally:

@@ -13,6 +13,17 @@ const job = {
   salary_max: 130000,
   created_at: '',
   updated_at: '',
+  status_history: [
+    {
+      id: 'history-1',
+      job_id: '1',
+      old_status: null,
+      new_status: 'Applied' as const,
+      source: 'manual',
+      note: 'Application created',
+      created_at: '2026-05-11T00:00:00Z',
+    },
+  ],
 };
 
 test('renders empty state', () => {
@@ -43,4 +54,12 @@ test('calls status handler', async () => {
   render(<JobList jobs={[job]} onEdit={jest.fn()} onDelete={jest.fn()} onStatusChange={onStatusChange} />);
   await user.selectOptions(screen.getByDisplayValue('Applied'), 'Interview');
   expect(onStatusChange).toHaveBeenCalledWith('1', 'Interview');
+});
+
+test('toggles status history', async () => {
+  const user = userEvent.setup();
+  render(<JobList jobs={[job]} onEdit={jest.fn()} onDelete={jest.fn()} onStatusChange={jest.fn()} />);
+  await user.click(screen.getByRole('button', { name: /History/i }));
+  expect(screen.getByText(/Created as Applied/i)).toBeInTheDocument();
+  expect(screen.getByText(/Application created/i)).toBeInTheDocument();
 });

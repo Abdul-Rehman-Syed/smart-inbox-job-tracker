@@ -32,7 +32,24 @@ def test_update_job_status(client, job_payload):
     job = create_job(client, job_payload)
     response = client.put(f"/api/jobs/{job['id']}", json={"status": "Interview"})
     assert response.status_code == 200
-    assert response.json()["data"]["status"] == "Interview"
+    data = response.json()["data"]
+    assert data["status"] == "Interview"
+    assert data["status_history"][0]["old_status"] == "Applied"
+    assert data["status_history"][0]["new_status"] == "Interview"
+
+
+def test_create_job_records_initial_status_history(client, job_payload):
+    job = create_job(client, job_payload)
+    assert job["status_history"][0]["old_status"] is None
+    assert job["status_history"][0]["new_status"] == "Applied"
+    assert job["status_history"][0]["source"] == "manual"
+
+
+def test_non_status_update_does_not_add_status_history(client, job_payload):
+    job = create_job(client, job_payload)
+    response = client.put(f"/api/jobs/{job['id']}", json={"company": "Globex"})
+    assert response.status_code == 200
+    assert len(response.json()["data"]["status_history"]) == 1
 
 
 def test_update_job_company(client, job_payload):

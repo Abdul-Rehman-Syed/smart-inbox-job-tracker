@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import CHAR, TypeDecorator
@@ -58,6 +58,27 @@ class Job(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
     user: Mapped["User"] = relationship(back_populates="jobs")
+    status_history: Mapped[list["JobStatusHistory"]] = relationship(
+        back_populates="job",
+        cascade="all, delete-orphan",
+        order_by="desc(JobStatusHistory.created_at)",
+    )
+
+
+class JobStatusHistory(Base):
+    __tablename__ = "job_status_history"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
+    job_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("jobs.id"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False, index=True)
+    old_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    new_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    source: Mapped[str] = mapped_column(String(40), nullable=False, default="manual")
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    job: Mapped[Job] = relationship(back_populates="status_history")
+    user: Mapped["User"] = relationship(back_populates="job_status_history")
 
 
 class User(Base):
@@ -72,3 +93,4 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
     jobs: Mapped[list[Job]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    job_status_history: Mapped[list[JobStatusHistory]] = relationship(cascade="all, delete-orphan")

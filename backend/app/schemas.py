@@ -59,12 +59,25 @@ class JobUpdate(BaseModel):
         return self
 
 
+class JobStatusHistoryRead(BaseModel):
+    id: UUID
+    job_id: UUID
+    old_status: Optional[str] = None
+    new_status: str
+    source: str
+    note: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class JobRead(JobBase):
     id: UUID
     user_id: UUID
     job_url: str
     created_at: datetime
     updated_at: datetime
+    status_history: list[JobStatusHistoryRead] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

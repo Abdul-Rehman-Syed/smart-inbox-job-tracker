@@ -61,6 +61,19 @@ https://d2k57hwu6y8pci.cloudfront.net
 | created_at | timestamp | Auto |
 | updated_at | timestamp | Auto |
 
+`job_status_history`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | UUID | Primary key |
+| job_id | UUID | Foreign key to jobs.id |
+| user_id | UUID | Foreign key to users.id |
+| old_status | varchar(32) | Previous status, empty for initial creation |
+| new_status | varchar(32) | New status |
+| source | varchar(40) | Change source such as manual or seed |
+| note | text | Optional context |
+| created_at | timestamp | Auto |
+
 ## API Documentation
 
 Auth:

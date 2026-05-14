@@ -12,6 +12,17 @@ export interface Job {
   salary_max?: number | null;
   created_at: string;
   updated_at: string;
+  status_history?: JobStatusHistory[];
+}
+
+export interface JobStatusHistory {
+  id: string;
+  job_id: string;
+  old_status?: JobStatus | null;
+  new_status: JobStatus;
+  source: string;
+  note?: string | null;
+  created_at: string;
 }
 
 export interface JobInput {

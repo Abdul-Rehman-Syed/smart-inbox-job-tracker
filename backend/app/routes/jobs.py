@@ -4,10 +4,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Job, JobStatus, User
+from app.models import Job, JobStatus, JobStatusHistory, User
 from app.schemas import ApiResponse, JobCreate, JobRead, JobUpdate, Stats
 from app.security import get_current_user
 
@@ -26,10 +26,32 @@ def _date_cutoff(date_range: DateRange | None) -> datetime | None:
 
 
 def _get_job_or_404(db: Session, job_id: UUID, user_id: UUID) -> Job:
-    job = db.scalar(select(Job).where(Job.id == job_id, Job.user_id == user_id))
+    job = db.scalar(
+        select(Job).options(selectinload(Job.status_history)).where(Job.id == job_id, Job.user_id == user_id)
+    )
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job application not found")
     return job
+
+
+def _add_status_history(
+    db: Session,
+    job: Job,
+    user_id: UUID,
+    old_status: JobStatus | None,
+    new_status: JobStatus,
+    note: str,
+):
+    db.add(
+        JobStatusHistory(
+            job_id=job.id,
+            user_id=user_id,
+            old_status=old_status.value if old_status else None,
+            new_status=new_status.value,
+            source="manual",
+            note=note,
+        )
+    )
 
 
 @router.post("/jobs", response_model=ApiResponse[JobRead], status_code=status.HTTP_201_CREATED)
@@ -43,6 +65,8 @@ def create_job(
     values["user_id"] = current_user.id
     job = Job(**values)
     db.add(job)
+    db.flush()
+    _add_status_history(db, job, current_user.id, None, job.status, "Application created")
     db.commit()
     db.refresh(job)
     return ApiResponse(data=job, message="Job application created")
@@ -55,7 +79,12 @@ def list_jobs(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    stmt = select(Job).where(Job.user_id == current_user.id).order_by(Job.date_applied.desc(), Job.created_at.desc())
+    stmt = (
+        select(Job)
+        .options(selectinload(Job.status_history))
+        .where(Job.user_id == current_user.id)
+        .order_by(Job.date_applied.desc(), Job.created_at.desc())
+    )
     cutoff = _date_cutoff(date_range)
     if cutoff:
         stmt = stmt.where(Job.date_applied >= cutoff)
@@ -83,6 +112,7 @@ def update_job(
 ):
     job = _get_job_or_404(db, job_id, current_user.id)
     updates = payload.model_dump(exclude_unset=True)
+    old_status = job.status
     if "job_url" in updates and updates["job_url"] is not None:
         updates["job_url"] = str(updates["job_url"])
     if "salary_min" in updates and "salary_max" not in updates and job.salary_max is not None:
@@ -99,6 +129,8 @@ def update_job(
             )
     for key, value in updates.items():
         setattr(job, key, value)
+    if "status" in updates and updates["status"] is not None and updates["status"] != old_status:
+        _add_status_history(db, job, current_user.id, old_status, updates["status"], "Status updated manually")
     db.commit()
     db.refresh(job)
     return ApiResponse(data=job, message="Job application updated")
