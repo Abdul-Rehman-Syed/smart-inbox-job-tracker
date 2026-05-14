@@ -50,6 +50,7 @@ beforeEach(() => {
   mockedApi.getJobs.mockResolvedValue([baseJob]);
   mockedApi.getStats.mockResolvedValue(baseStats);
   mockedApi.getEmailStatus.mockResolvedValue(baseEmailStatus);
+  mockedApi.getGmailConnectUrl.mockResolvedValue({ authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth' });
   mockedApi.getEmailEvents.mockResolvedValue([]);
   mockedApi.syncEmail.mockResolvedValue({ scanned: 0, created_jobs: 0, updated_jobs: 0, needs_review: 0, skipped: 0 });
   mockedApi.disconnectEmail.mockResolvedValue({ connected: false });

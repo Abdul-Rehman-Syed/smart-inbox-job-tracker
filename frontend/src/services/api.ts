@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse, AuthResponse, User } from '../types/API';
-import type { EmailConnectionStatus, EmailEvent, EmailSyncSummary } from '../types/Email';
+import type { EmailConnectionStatus, EmailEvent, EmailSyncSummary, GmailConnectUrl } from '../types/Email';
 import type { Job, JobFilters, JobInput, Stats } from '../types/Job';
 
 const API_BASE_URL = typeof __API_BASE_URL__ !== 'undefined' ? __API_BASE_URL__ : 'http://localhost:8000/api';
@@ -80,6 +80,10 @@ export const api = {
 
   async getEmailStatus(): Promise<EmailConnectionStatus> {
     return unwrap(await client.get<ApiResponse<EmailConnectionStatus>>('/email/gmail/status'));
+  },
+
+  async getGmailConnectUrl(): Promise<GmailConnectUrl> {
+    return unwrap(await client.get<ApiResponse<GmailConnectUrl>>('/email/gmail/connect'));
   },
 
   async getEmailEvents(): Promise<EmailEvent[]> {

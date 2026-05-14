@@ -24,6 +24,39 @@ def test_gmail_events_empty(client):
     assert response.json()["data"] == []
 
 
+def test_gmail_connect_returns_authorization_url(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.routes.email.build_gmail_authorization_url",
+        lambda user_id: f"https://accounts.google.com/o/oauth2/v2/auth?state={user_id}",
+    )
+
+    response = client.get("/api/email/gmail/connect")
+
+    assert response.status_code == 200
+    assert response.json()["data"]["authorization_url"].startswith("https://accounts.google.com")
+
+
+def test_gmail_callback_stores_connection(client, db_session, monkeypatch):
+    user_id = _current_user_id(client)
+    monkeypatch.setattr("app.routes.email.decode_gmail_oauth_state", lambda state: user_id)
+    monkeypatch.setattr(
+        "app.routes.email.exchange_gmail_code",
+        lambda code: {
+            "provider_email": "connected@gmail.com",
+            "encrypted_refresh_token": "encrypted-token",
+            "scopes": "https://www.googleapis.com/auth/gmail.readonly",
+            "access_token_expires_at": datetime.now(timezone.utc),
+        },
+    )
+
+    response = client.get("/api/email/gmail/callback?code=abc&state=state-token", follow_redirects=False)
+
+    assert response.status_code == 307
+    connection = db_session.query(EmailConnection).one()
+    assert str(connection.user_id) == user_id
+    assert connection.provider_email == "connected@gmail.com"
+
+
 def test_gmail_status_connected(client, db_session):
     user_id = _current_user_id(client)
     db_session.add(

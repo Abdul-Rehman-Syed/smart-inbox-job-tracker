@@ -169,6 +169,18 @@ function App() {
     }
   }
 
+  async function handleEmailConnect() {
+    setIsEmailLoading(true);
+    setError('');
+    try {
+      const { authorization_url } = await api.getGmailConnectUrl();
+      window.location.href = authorization_url;
+    } catch {
+      setError('Could not start Gmail connection. Check OAuth settings and try again.');
+      setIsEmailLoading(false);
+    }
+  }
+
   async function handleEmailDisconnect() {
     setIsEmailLoading(true);
     setError('');
@@ -214,6 +226,7 @@ function App() {
         events={emailEvents}
         summary={emailSummary}
         isLoading={isEmailLoading}
+        onConnect={handleEmailConnect}
         onSync={handleEmailSync}
         onDisconnect={handleEmailDisconnect}
       />

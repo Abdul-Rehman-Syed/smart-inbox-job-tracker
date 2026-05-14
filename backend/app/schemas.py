@@ -140,6 +140,10 @@ class EmailConnectionStatus(BaseModel):
     connection: Optional[EmailConnectionRead] = None
 
 
+class GmailConnectUrl(BaseModel):
+    authorization_url: str
+
+
 class EmailEventRead(BaseModel):
     id: UUID
     job_id: Optional[UUID] = None

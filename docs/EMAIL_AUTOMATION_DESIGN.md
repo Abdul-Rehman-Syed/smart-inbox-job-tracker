@@ -70,6 +70,13 @@ Manual sync flow:
 
 The first implementation should limit processing to the newest 50 matching messages per sync.
 
+Current implementation status:
+
+- OAuth connect and callback endpoints are implemented.
+- Gmail refresh tokens are encrypted before storage.
+- Rule-based classifier and processing service are implemented and tested.
+- Live Gmail message fetching is still the next step.
+
 ## Privacy Rules
 
 Do not store full email bodies by default.

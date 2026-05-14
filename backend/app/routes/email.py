@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.database import get_db
+from app.gmail_oauth import build_gmail_authorization_url, decode_gmail_oauth_state, exchange_gmail_code
 from app.models import EmailConnection, EmailEvent, User
-from app.schemas import ApiResponse, EmailConnectionStatus, EmailEventRead, EmailSyncSummary
+from app.schemas import ApiResponse, EmailConnectionStatus, EmailEventRead, EmailSyncSummary, GmailConnectUrl
 from app.security import get_current_user
 
 router = APIRouter(prefix="/api/email", tags=["email"])
@@ -30,6 +33,36 @@ def get_gmail_status(
             connection=connection,
         )
     )
+
+
+@router.get("/gmail/connect", response_model=ApiResponse[GmailConnectUrl])
+def connect_gmail(current_user: User = Depends(get_current_user)):
+    return ApiResponse(data=GmailConnectUrl(authorization_url=build_gmail_authorization_url(current_user.id)))
+
+
+@router.get("/gmail/callback", include_in_schema=False)
+def gmail_callback(
+    code: str | None = Query(default=None),
+    state: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    frontend_url = get_settings().frontend_url
+    if error:
+        return RedirectResponse(f"{frontend_url}?gmail=error")
+    if not code or not state:
+        return RedirectResponse(f"{frontend_url}?gmail=missing_code")
+
+    user_id = decode_gmail_oauth_state(state)
+    token_data = exchange_gmail_code(code)
+    connection = _get_gmail_connection(db, user_id)
+    if connection:
+        for key, value in token_data.items():
+            setattr(connection, key, value)
+    else:
+        db.add(EmailConnection(user_id=user_id, provider="gmail", **token_data))
+    db.commit()
+    return RedirectResponse(f"{frontend_url}?gmail=connected")
 
 
 @router.post("/gmail/disconnect", response_model=ApiResponse[dict])

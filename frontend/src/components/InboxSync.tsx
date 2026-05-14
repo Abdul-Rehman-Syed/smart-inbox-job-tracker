@@ -5,6 +5,7 @@ interface InboxSyncProps {
   events: EmailEvent[];
   summary: EmailSyncSummary | null;
   isLoading: boolean;
+  onConnect: () => Promise<void>;
   onSync: () => Promise<void>;
   onDisconnect: () => Promise<void>;
 }
@@ -14,7 +15,7 @@ function formatDate(value?: string | null) {
   return new Date(value).toLocaleString();
 }
 
-export function InboxSync({ status, events, summary, isLoading, onSync, onDisconnect }: InboxSyncProps) {
+export function InboxSync({ status, events, summary, isLoading, onConnect, onSync, onDisconnect }: InboxSyncProps) {
   const isConnected = Boolean(status?.connected);
   const recentEvents = events.slice(0, 4);
 
@@ -54,7 +55,7 @@ export function InboxSync({ status, events, summary, isLoading, onSync, onDiscon
       )}
 
       <div className="inbox-actions">
-        <button type="button" disabled>
+        <button type="button" onClick={onConnect} disabled={isConnected || isLoading}>
           Connect Gmail
         </button>
         <button type="button" onClick={onSync} disabled={!isConnected || isLoading}>

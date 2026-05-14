@@ -117,6 +117,31 @@ This project is deployed in `us-east-1` with a free-tier-friendly setup:
 10. Push to `main`. The `Test and Deploy` workflow runs tests and deploys automatically.
 11. Optional: manually run `Test and Deploy` from GitHub Actions if you need to redeploy without a code change.
 
+## Gmail OAuth Setup
+
+Gmail sync uses Google OAuth with the read-only Gmail scope. The backend starts the OAuth flow, Google redirects back to the API callback, and the backend stores only an encrypted refresh token.
+
+1. In Google Cloud Console, create or select a project.
+2. Enable the Gmail API.
+3. Configure the OAuth consent screen.
+   - App type: External
+   - Publishing status for development: Testing
+   - Add your Gmail address as a test user
+   - Scope: `https://www.googleapis.com/auth/gmail.readonly`
+4. Create OAuth client credentials.
+   - Application type: Web application
+   - Authorized redirect URI: `https://d2k57hwu6y8pci.cloudfront.net/api/email/gmail/callback`
+   - Local redirect URI, if testing locally: `http://localhost:8000/api/email/gmail/callback`
+5. Add these values to GitHub Secrets:
+   - `FRONTEND_URL`: `https://d2k57hwu6y8pci.cloudfront.net`
+   - `GMAIL_CLIENT_ID`: value from Google
+   - `GMAIL_CLIENT_SECRET`: value from Google
+   - `GMAIL_REDIRECT_URI`: `https://d2k57hwu6y8pci.cloudfront.net/api/email/gmail/callback`
+   - `EMAIL_TOKEN_ENCRYPTION_KEY`: a long random value that is different from `SECRET_KEY`
+6. Push to `main` or manually rerun `Test and Deploy`.
+
+The `Connect Gmail` button will return an error until those secrets are configured and deployed.
+
 Current production endpoints:
 
 - Frontend: `https://d2k57hwu6y8pci.cloudfront.net`

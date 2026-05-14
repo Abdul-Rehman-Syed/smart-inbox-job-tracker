@@ -9,6 +9,7 @@ test('renders disconnected Gmail state', () => {
       events={[]}
       summary={null}
       isLoading={false}
+      onConnect={jest.fn()}
       onSync={jest.fn()}
       onDisconnect={jest.fn()}
     />,
@@ -22,6 +23,7 @@ test('renders disconnected Gmail state', () => {
 test('renders connected state and calls sync', async () => {
   const user = userEvent.setup();
   const onSync = jest.fn().mockResolvedValue(undefined);
+  const onConnect = jest.fn().mockResolvedValue(undefined);
 
   render(
     <InboxSync
@@ -51,6 +53,7 @@ test('renders connected state and calls sync', async () => {
       ]}
       summary={{ scanned: 3, created_jobs: 1, updated_jobs: 1, needs_review: 0, skipped: 1 }}
       isLoading={false}
+      onConnect={onConnect}
       onSync={onSync}
       onDisconnect={jest.fn()}
     />,
@@ -64,4 +67,26 @@ test('renders connected state and calls sync', async () => {
   await user.click(screen.getByRole('button', { name: /Sync Gmail/i }));
 
   expect(onSync).toHaveBeenCalledTimes(1);
+  expect(onConnect).not.toHaveBeenCalled();
+});
+
+test('calls connect from disconnected state', async () => {
+  const user = userEvent.setup();
+  const onConnect = jest.fn().mockResolvedValue(undefined);
+
+  render(
+    <InboxSync
+      status={{ provider: 'gmail', connected: false, connection: null }}
+      events={[]}
+      summary={null}
+      isLoading={false}
+      onConnect={onConnect}
+      onSync={jest.fn()}
+      onDisconnect={jest.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole('button', { name: /Connect Gmail/i }));
+
+  expect(onConnect).toHaveBeenCalledTimes(1);
 });

@@ -81,6 +81,11 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           ALLOWED_ORIGINS: ${{ secrets.API_ALLOWED_ORIGINS }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REDIRECT_URI: ${{ secrets.GMAIL_REDIRECT_URI }}
+          EMAIL_TOKEN_ENCRYPTION_KEY: ${{ secrets.EMAIL_TOKEN_ENCRYPTION_KEY }}
         run: |
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
@@ -90,10 +95,10 @@ jobs:
               \"set -e\",
               \"aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY\",
               \"docker pull $ECR_REGISTRY/job-tracker-backend:latest\",
-              \"docker run --rm -e DATABASE_URL='$DATABASE_URL' -e ENVIRONMENT=production -e DEBUG=False -e SECRET_KEY='$SECRET_KEY' $ECR_REGISTRY/job-tracker-backend:latest alembic upgrade head\",
+              \"docker run --rm -e DATABASE_URL='$DATABASE_URL' -e ENVIRONMENT=production -e DEBUG=False -e SECRET_KEY='$SECRET_KEY' -e FRONTEND_URL='$FRONTEND_URL' -e GMAIL_CLIENT_ID='$GMAIL_CLIENT_ID' -e GMAIL_CLIENT_SECRET='$GMAIL_CLIENT_SECRET' -e GMAIL_REDIRECT_URI='$GMAIL_REDIRECT_URI' -e EMAIL_TOKEN_ENCRYPTION_KEY='$EMAIL_TOKEN_ENCRYPTION_KEY' $ECR_REGISTRY/job-tracker-backend:latest alembic upgrade head\",
               \"docker stop job-tracker-backend || true\",
               \"docker rm job-tracker-backend || true\",
-              \"docker run -d --name job-tracker-backend --restart unless-stopped -p 80:8000 -e DATABASE_URL='$DATABASE_URL' -e ENVIRONMENT=production -e DEBUG=False -e SECRET_KEY='$SECRET_KEY' -e ACCESS_TOKEN_EXPIRE_MINUTES=1440 -e ALLOWED_ORIGINS='$ALLOWED_ORIGINS' $ECR_REGISTRY/job-tracker-backend:latest\",
+              \"docker run -d --name job-tracker-backend --restart unless-stopped -p 80:8000 -e DATABASE_URL='$DATABASE_URL' -e ENVIRONMENT=production -e DEBUG=False -e SECRET_KEY='$SECRET_KEY' -e ACCESS_TOKEN_EXPIRE_MINUTES=1440 -e ALLOWED_ORIGINS='$ALLOWED_ORIGINS' -e FRONTEND_URL='$FRONTEND_URL' -e GMAIL_CLIENT_ID='$GMAIL_CLIENT_ID' -e GMAIL_CLIENT_SECRET='$GMAIL_CLIENT_SECRET' -e GMAIL_REDIRECT_URI='$GMAIL_REDIRECT_URI' -e EMAIL_TOKEN_ENCRYPTION_KEY='$EMAIL_TOKEN_ENCRYPTION_KEY' $ECR_REGISTRY/job-tracker-backend:latest\",
               \"sleep 10\",
               \"curl -fsS http://localhost/api/health\"
             ]" \

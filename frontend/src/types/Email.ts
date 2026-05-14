@@ -13,6 +13,10 @@ export interface EmailConnectionStatus {
   connection?: EmailConnection | null;
 }
 
+export interface GmailConnectUrl {
+  authorization_url: string;
+}
+
 export interface EmailEvent {
   id: string;
   job_id?: string | null;

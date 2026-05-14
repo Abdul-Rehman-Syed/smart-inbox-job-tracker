@@ -54,7 +54,7 @@ The production seed workflow runs the same script through AWS Systems Manager an
 - Pie chart by status and bar chart for top companies
 - Date range and status filters
 - Expandable status history for each job application
-- Gmail automation interface and backend foundation for future inbox sync
+- Gmail OAuth connection flow plus backend classification/processing foundation for inbox sync
 - Email/password authentication with bearer tokens
 - User-owned job applications and dashboard statistics
 - Fully typed React API client
@@ -163,6 +163,8 @@ Endpoints:
 - `DELETE /api/jobs/{job_id}`
 - `GET /api/stats?date_range=all|7d|30d`
 - `GET /api/email/gmail/status`
+- `GET /api/email/gmail/connect`
+- `GET /api/email/gmail/callback`
 - `POST /api/email/gmail/disconnect`
 - `POST /api/email/sync`
 - `GET /api/email/events`
@@ -205,11 +207,23 @@ Required GitHub Actions secrets:
 - `API_ALLOWED_ORIGINS`
 - `S3_BUCKET`
 - `CLOUDFRONT_DISTRIBUTION_ID`
+- `FRONTEND_URL`
+- `GMAIL_CLIENT_ID`
+- `GMAIL_CLIENT_SECRET`
+- `GMAIL_REDIRECT_URI`
+- `EMAIL_TOKEN_ENCRYPTION_KEY`
 
 Recommended `API_ALLOWED_ORIGINS` value for local plus deployed frontend:
 
 ```text
 http://localhost:3000,https://d2k57hwu6y8pci.cloudfront.net
+```
+
+Recommended Gmail OAuth values:
+
+```text
+FRONTEND_URL=https://d2k57hwu6y8pci.cloudfront.net
+GMAIL_REDIRECT_URI=https://d2k57hwu6y8pci.cloudfront.net/api/email/gmail/callback
 ```
 
 See [SETUP.md](SETUP.md) for the complete AWS setup checklist and [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md) for architecture details.
