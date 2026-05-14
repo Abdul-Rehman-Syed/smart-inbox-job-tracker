@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
 from uuid import UUID
@@ -7,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.email_processor import process_email_event
+from app.gmail_client import fetch_recent_job_emails
 from app.gmail_oauth import build_gmail_authorization_url, decode_gmail_oauth_state, exchange_gmail_code
 from app.models import EmailConnection, EmailEvent, User
 from app.schemas import ApiResponse, EmailConnectionStatus, EmailEventRead, EmailSyncSummary, GmailConnectUrl
@@ -89,7 +93,22 @@ def sync_gmail(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Connect Gmail before syncing email events",
         )
-    return ApiResponse(data=EmailSyncSummary(), message="Gmail sync is not implemented yet")
+    messages = fetch_recent_job_emails(connection.encrypted_refresh_token)
+    summary = EmailSyncSummary(scanned=len(messages))
+    for message in messages:
+        event = process_email_event(db, current_user.id, message)
+        if event.processing_status == "Created":
+            summary.created_jobs += 1
+        elif event.processing_status == "Updated":
+            summary.updated_jobs += 1
+        elif event.processing_status == "NeedsReview":
+            summary.needs_review += 1
+        else:
+            summary.skipped += 1
+
+    connection.last_sync_at = datetime.now(timezone.utc)
+    db.commit()
+    return ApiResponse(data=summary, message="Gmail sync completed")
 
 
 @router.get("/events", response_model=ApiResponse[list[EmailEventRead]])

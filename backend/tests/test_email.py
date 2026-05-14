@@ -18,6 +18,44 @@ def test_gmail_sync_requires_connection(client):
     assert response.json()["message"] == "Connect Gmail before syncing email events"
 
 
+def test_gmail_sync_processes_fetched_messages(client, db_session, monkeypatch):
+    from app.email_processor import IncomingEmail
+
+    user_id = _current_user_id(client)
+    db_session.add(
+        EmailConnection(
+            user_id=user_id,
+            provider="gmail",
+            provider_email="test@gmail.com",
+            encrypted_refresh_token="encrypted-token",
+            scopes="https://www.googleapis.com/auth/gmail.readonly",
+        )
+    )
+    db_session.commit()
+    monkeypatch.setattr(
+        "app.routes.email.fetch_recent_job_emails",
+        lambda encrypted_token: [
+            IncomingEmail(
+                message_id="msg-sync-1",
+                sender="jobs@acme.com",
+                subject="Your application for Frontend Engineer at Acme has been received",
+                snippet="Thank you for applying. We received your application.",
+                received_at=datetime.now(timezone.utc),
+                job_url="https://example.com/acme/frontend",
+            )
+        ],
+    )
+
+    response = client.post("/api/email/sync")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["scanned"] == 1
+    assert data["created_jobs"] == 1
+    assert data["updated_jobs"] == 0
+    assert data["skipped"] == 0
+
+
 def test_gmail_events_empty(client):
     response = client.get("/api/email/events")
     assert response.status_code == 200
