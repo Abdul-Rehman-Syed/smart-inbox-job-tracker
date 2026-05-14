@@ -68,8 +68,7 @@ def create_job(
     db.flush()
     _add_status_history(db, job, current_user.id, None, job.status, "Application created")
     db.commit()
-    db.refresh(job)
-    return ApiResponse(data=job, message="Job application created")
+    return ApiResponse(data=_get_job_or_404(db, job.id, current_user.id), message="Job application created")
 
 
 @router.get("/jobs", response_model=ApiResponse[list[JobRead]])
@@ -132,8 +131,7 @@ def update_job(
     if "status" in updates and updates["status"] is not None and updates["status"] != old_status:
         _add_status_history(db, job, current_user.id, old_status, updates["status"], "Status updated manually")
     db.commit()
-    db.refresh(job)
-    return ApiResponse(data=job, message="Job application updated")
+    return ApiResponse(data=_get_job_or_404(db, job_id, current_user.id), message="Job application updated")
 
 
 @router.delete("/jobs/{job_id}", response_model=ApiResponse[dict])

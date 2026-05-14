@@ -1,6 +1,6 @@
-import enum
 import uuid
-from datetime import datetime
+import enum
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -61,7 +61,7 @@ class Job(Base):
     status_history: Mapped[list["JobStatusHistory"]] = relationship(
         back_populates="job",
         cascade="all, delete-orphan",
-        order_by="desc(JobStatusHistory.created_at)",
+        order_by="desc(JobStatusHistory.created_at), desc(JobStatusHistory.id)",
     )
 
 
@@ -75,7 +75,12 @@ class JobStatusHistory(Base):
     new_status: Mapped[str] = mapped_column(String(32), nullable=False)
     source: Mapped[str] = mapped_column(String(40), nullable=False, default="manual")
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now(),
+        nullable=False,
+    )
 
     job: Mapped[Job] = relationship(back_populates="status_history")
     user: Mapped["User"] = relationship(back_populates="job_status_history")
