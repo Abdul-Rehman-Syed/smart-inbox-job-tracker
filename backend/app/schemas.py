@@ -123,4 +123,48 @@ class AuthResponse(BaseModel):
     user: UserRead
 
 
+class EmailConnectionRead(BaseModel):
+    id: UUID
+    provider: str
+    provider_email: str
+    scopes: str
+    last_sync_at: Optional[datetime] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EmailConnectionStatus(BaseModel):
+    provider: str = "gmail"
+    connected: bool
+    connection: Optional[EmailConnectionRead] = None
+
+
+class EmailEventRead(BaseModel):
+    id: UUID
+    job_id: Optional[UUID] = None
+    provider: str
+    message_id: str
+    thread_id: Optional[str] = None
+    sender: Optional[str] = None
+    subject: Optional[str] = None
+    received_at: Optional[datetime] = None
+    detected_company: Optional[str] = None
+    detected_job_title: Optional[str] = None
+    detected_status: Optional[str] = None
+    processing_status: str
+    note: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EmailSyncSummary(BaseModel):
+    scanned: int = 0
+    created_jobs: int = 0
+    updated_jobs: int = 0
+    needs_review: int = 0
+    skipped: int = 0
+
+
 ApiData = Dict[str, Any]

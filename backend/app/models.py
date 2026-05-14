@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import CHAR, TypeDecorator
@@ -99,3 +99,57 @@ class User(Base):
     )
     jobs: Mapped[list[Job]] = relationship(back_populates="user", cascade="all, delete-orphan")
     job_status_history: Mapped[list[JobStatusHistory]] = relationship(cascade="all, delete-orphan")
+    email_connections: Mapped[list["EmailConnection"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    email_events: Mapped[list["EmailEvent"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+
+class EmailConnection(Base):
+    __tablename__ = "email_connections"
+    __table_args__ = (UniqueConstraint("user_id", "provider", name="uq_email_connections_user_provider"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False, default="gmail")
+    provider_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    encrypted_refresh_token: Mapped[str] = mapped_column(Text, nullable=False)
+    scopes: Mapped[str] = mapped_column(Text, nullable=False)
+    access_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    user: Mapped[User] = relationship(back_populates="email_connections")
+
+
+class EmailEvent(Base):
+    __tablename__ = "email_events"
+    __table_args__ = (
+        UniqueConstraint("user_id", "provider", "message_id", name="uq_email_events_user_provider_message"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False, index=True)
+    job_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("jobs.id"), nullable=True, index=True)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False, default="gmail")
+    message_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    thread_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    sender: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    subject: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    detected_company: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    detected_job_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    detected_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    processing_status: Mapped[str] = mapped_column(String(40), nullable=False, default="NeedsReview")
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user: Mapped[User] = relationship(back_populates="email_events")
+    job: Mapped[Job | None] = relationship()

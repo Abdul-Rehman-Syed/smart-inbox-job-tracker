@@ -7,6 +7,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.database import Base, engine
 from app.routes.auth import router as auth_router
+from app.routes.email import router as email_router
 from app.routes.jobs import router as jobs_router
 from app.schemas import ApiResponse, Health
 
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(email_router)
 app.include_router(jobs_router)
 
 

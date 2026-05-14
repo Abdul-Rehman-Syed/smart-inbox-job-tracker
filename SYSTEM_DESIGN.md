@@ -74,6 +74,41 @@ https://d2k57hwu6y8pci.cloudfront.net
 | note | text | Optional context |
 | created_at | timestamp | Auto |
 
+`email_connections`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key to users.id |
+| provider | varchar(40) | `gmail` for the planned Gmail integration |
+| provider_email | varchar(255) | Connected mailbox address |
+| encrypted_refresh_token | text | Encrypted OAuth refresh token |
+| scopes | text | Granted OAuth scopes |
+| access_token_expires_at | timestamp | Optional token cache metadata |
+| last_sync_at | timestamp | Last completed sync |
+| created_at | timestamp | Auto |
+| updated_at | timestamp | Auto |
+
+`email_events`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key to users.id |
+| job_id | UUID | Optional foreign key to jobs.id |
+| provider | varchar(40) | `gmail` |
+| message_id | varchar(255) | Gmail message ID, unique per user/provider |
+| thread_id | varchar(255) | Gmail thread ID |
+| sender | varchar(320) | Email sender |
+| subject | varchar(500) | Email subject |
+| received_at | timestamp | Gmail message timestamp |
+| detected_company | varchar(160) | Parsed company |
+| detected_job_title | varchar(200) | Parsed role |
+| detected_status | varchar(32) | Applied, Interview, Rejected, Offer, or Unknown |
+| processing_status | varchar(40) | Created, Updated, Skipped, NeedsReview, Failed |
+| note | text | Parser/debug note |
+| created_at | timestamp | Auto |
+
 ## API Documentation
 
 Auth:
@@ -118,6 +153,15 @@ Health:
 
 ```http
 GET /api/health
+```
+
+Email automation foundation:
+
+```http
+GET /api/email/gmail/status
+POST /api/email/gmail/disconnect
+POST /api/email/sync
+GET /api/email/events
 ```
 
 ## Deployment Architecture

@@ -161,6 +161,10 @@ Endpoints:
 - `PUT /api/jobs/{job_id}`
 - `DELETE /api/jobs/{job_id}`
 - `GET /api/stats?date_range=all|7d|30d`
+- `GET /api/email/gmail/status`
+- `POST /api/email/gmail/disconnect`
+- `POST /api/email/sync`
+- `GET /api/email/events`
 - `GET /api/health`
 
 Job and stats endpoints require:
