@@ -54,6 +54,7 @@ The production seed workflow runs the same script through AWS Systems Manager an
 - Pie chart by status and bar chart for top companies
 - Date range and status filters
 - Expandable status history for each job application
+- Gmail automation interface and backend foundation for future inbox sync
 - Email/password authentication with bearer tokens
 - User-owned job applications and dashboard statistics
 - Fully typed React API client

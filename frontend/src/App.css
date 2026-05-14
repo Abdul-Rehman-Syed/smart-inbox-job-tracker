@@ -156,7 +156,8 @@ h2 {
 .stat-card,
 .job-form,
 .table-shell,
-.chart-panel {
+.chart-panel,
+.inbox-panel {
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(21, 26, 36, 0.9);
   border-radius: 8px;
@@ -179,6 +180,136 @@ h2 {
 .stat-card strong {
   color: #ffffff;
   font-size: 2.25rem;
+}
+
+.inbox-panel {
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.inbox-header,
+.inbox-actions,
+.sync-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inbox-header {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.inbox-copy {
+  color: #aab6c7;
+  margin: 0 0 14px;
+}
+
+.connection-badge {
+  border: 1px solid rgba(240, 199, 94, 0.4);
+  border-radius: 999px;
+  color: #f0c75e;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.connection-badge.connected {
+  border-color: rgba(124, 207, 138, 0.42);
+  color: #8ee8a0;
+}
+
+.inbox-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 14px;
+}
+
+.inbox-meta div {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.inbox-meta dt,
+.email-events h3 {
+  color: #8fb3ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.inbox-meta dd {
+  color: #d8e1ee;
+  margin: 4px 0 0;
+}
+
+.sync-summary {
+  margin-bottom: 14px;
+}
+
+.sync-summary span {
+  background: #171c25;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  color: #d8e1ee;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.inbox-actions {
+  margin-bottom: 16px;
+}
+
+.inbox-actions button {
+  color: #d8e1ee;
+  background: #222936;
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.inbox-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.email-events {
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 14px;
+}
+
+.email-events h3 {
+  margin: 0 0 10px;
+}
+
+.email-events ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.email-events li {
+  display: grid;
+  grid-template-columns: 100px minmax(180px, 1fr) minmax(160px, 0.8fr);
+  gap: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.email-events strong {
+  color: #ffffff;
+}
+
+.email-events span,
+.email-events small,
+.email-events p {
+  color: #aab6c7;
 }
 
 .toolbar {
@@ -443,6 +574,11 @@ a {
   .toolbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .inbox-meta,
+  .email-events li {
+    grid-template-columns: 1fr;
   }
 
   .status-history li {

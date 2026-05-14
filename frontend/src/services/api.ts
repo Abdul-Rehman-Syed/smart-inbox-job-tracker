@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse, AuthResponse, User } from '../types/API';
+import type { EmailConnectionStatus, EmailEvent, EmailSyncSummary } from '../types/Email';
 import type { Job, JobFilters, JobInput, Stats } from '../types/Job';
 
 const API_BASE_URL = typeof __API_BASE_URL__ !== 'undefined' ? __API_BASE_URL__ : 'http://localhost:8000/api';
@@ -75,6 +76,22 @@ export const api = {
 
   async getStats(dateRange = 'all'): Promise<Stats> {
     return unwrap(await client.get<ApiResponse<Stats>>('/stats', { params: { date_range: dateRange } }));
+  },
+
+  async getEmailStatus(): Promise<EmailConnectionStatus> {
+    return unwrap(await client.get<ApiResponse<EmailConnectionStatus>>('/email/gmail/status'));
+  },
+
+  async getEmailEvents(): Promise<EmailEvent[]> {
+    return unwrap(await client.get<ApiResponse<EmailEvent[]>>('/email/events'));
+  },
+
+  async syncEmail(): Promise<EmailSyncSummary> {
+    return unwrap(await client.post<ApiResponse<EmailSyncSummary>>('/email/sync'));
+  },
+
+  async disconnectEmail(): Promise<{ connected: boolean }> {
+    return unwrap(await client.post<ApiResponse<{ connected: boolean }>>('/email/gmail/disconnect'));
   },
 };
 

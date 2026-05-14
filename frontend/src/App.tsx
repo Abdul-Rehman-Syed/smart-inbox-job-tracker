@@ -4,10 +4,12 @@ import { AuthPanel } from './components/AuthPanel';
 import { Charts } from './components/Charts';
 import { Dashboard } from './components/Dashboard';
 import { Filters } from './components/Filters';
+import { InboxSync } from './components/InboxSync';
 import { JobForm } from './components/JobForm';
 import { JobList } from './components/JobList';
 import api from './services/api';
 import type { AuthResponse, User } from './types/API';
+import type { EmailConnectionStatus, EmailEvent, EmailSyncSummary } from './types/Email';
 import type { DateRange, Job, JobInput, JobStatus, Stats } from './types/Job';
 
 function App() {
@@ -15,6 +17,9 @@ function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(Boolean(api.getToken()));
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [emailStatus, setEmailStatus] = useState<EmailConnectionStatus | null>(null);
+  const [emailEvents, setEmailEvents] = useState<EmailEvent[]>([]);
+  const [emailSummary, setEmailSummary] = useState<EmailSyncSummary | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [status, setStatus] = useState<JobStatus | ''>('');
   const [editingJob, setEditingJob] = useState<Job | null>(null);
@@ -22,6 +27,7 @@ function App() {
   const [notice, setNotice] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -39,6 +45,17 @@ function App() {
       setIsLoading(false);
     }
   }, [dateRange, status]);
+
+  const refreshEmail = useCallback(async () => {
+    try {
+      const [statusResult, eventsResult] = await Promise.all([api.getEmailStatus(), api.getEmailEvents()]);
+      setEmailStatus(statusResult);
+      setEmailEvents(eventsResult);
+    } catch {
+      setEmailStatus({ provider: 'gmail', connected: false, connection: null });
+      setEmailEvents([]);
+    }
+  }, []);
 
   const visibleJobs = jobs.filter((job) => {
     const query = searchTerm.trim().toLowerCase();
@@ -71,8 +88,9 @@ function App() {
   useEffect(() => {
     if (currentUser) {
       refresh();
+      refreshEmail();
     }
-  }, [currentUser, refresh]);
+  }, [currentUser, refresh, refreshEmail]);
 
   function handleAuth(auth: AuthResponse) {
     api.setToken(auth.access_token);
@@ -85,6 +103,9 @@ function App() {
     setCurrentUser(null);
     setJobs([]);
     setStats(null);
+    setEmailStatus(null);
+    setEmailEvents([]);
+    setEmailSummary(null);
     setEditingJob(null);
     setNotice('');
     setError('');
@@ -133,6 +154,36 @@ function App() {
     }
   }
 
+  async function handleEmailSync() {
+    setIsEmailLoading(true);
+    setError('');
+    try {
+      const summary = await api.syncEmail();
+      setEmailSummary(summary);
+      await Promise.all([refresh(), refreshEmail()]);
+      showNotice('Gmail sync completed.');
+    } catch {
+      setError('Could not sync Gmail. Connect a mailbox before syncing.');
+    } finally {
+      setIsEmailLoading(false);
+    }
+  }
+
+  async function handleEmailDisconnect() {
+    setIsEmailLoading(true);
+    setError('');
+    try {
+      await api.disconnectEmail();
+      setEmailSummary(null);
+      await refreshEmail();
+      showNotice('Gmail disconnected.');
+    } catch {
+      setError('Could not disconnect Gmail. Try again.');
+    } finally {
+      setIsEmailLoading(false);
+    }
+  }
+
   if (isAuthLoading) {
     return <main className="app-shell">Loading account...</main>;
   }
@@ -158,6 +209,14 @@ function App() {
       {notice && <div className="notice">{notice}</div>}
 
       <Dashboard stats={stats} />
+      <InboxSync
+        status={emailStatus}
+        events={emailEvents}
+        summary={emailSummary}
+        isLoading={isEmailLoading}
+        onSync={handleEmailSync}
+        onDisconnect={handleEmailDisconnect}
+      />
       <Filters dateRange={dateRange} status={status} onDateRangeChange={setDateRange} onStatusChange={setStatus} />
 
       <div className="content-grid">

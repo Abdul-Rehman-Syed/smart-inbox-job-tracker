@@ -36,6 +36,12 @@ const baseUser = {
   created_at: '2026-05-11T00:00:00Z',
 };
 
+const baseEmailStatus = {
+  provider: 'gmail',
+  connected: false,
+  connection: null,
+};
+
 beforeEach(() => {
   mockedApi.getToken.mockReturnValue('token');
   mockedApi.getMe.mockResolvedValue(baseUser);
@@ -43,6 +49,10 @@ beforeEach(() => {
   mockedApi.clearToken.mockReturnValue(undefined);
   mockedApi.getJobs.mockResolvedValue([baseJob]);
   mockedApi.getStats.mockResolvedValue(baseStats);
+  mockedApi.getEmailStatus.mockResolvedValue(baseEmailStatus);
+  mockedApi.getEmailEvents.mockResolvedValue([]);
+  mockedApi.syncEmail.mockResolvedValue({ scanned: 0, created_jobs: 0, updated_jobs: 0, needs_review: 0, skipped: 0 });
+  mockedApi.disconnectEmail.mockResolvedValue({ connected: false });
   mockedApi.uploadJob.mockResolvedValue(baseJob);
   mockedApi.updateJob.mockResolvedValue(baseJob);
   mockedApi.deleteJob.mockResolvedValue(undefined);
@@ -60,6 +70,12 @@ test('renders job list rows', async () => {
   render(<App />);
   expect(await screen.findByText('Acme')).toBeInTheDocument();
   expect(screen.getByText('Frontend Engineer')).toBeInTheDocument();
+});
+
+test('renders inbox sync panel', async () => {
+  render(<App />);
+  expect(await screen.findByText('Gmail Sync')).toBeInTheDocument();
+  expect(screen.getByText('Not connected')).toBeInTheDocument();
 });
 
 test('submits a new job', async () => {
