@@ -213,7 +213,7 @@ See [SETUP.md](SETUP.md) for the complete AWS setup checklist and [SYSTEM_DESIGN
 
 - Email welcome/verification through AWS SES or another email provider
 - Google OAuth login
-- Email inbox sync for application updates
+- Gmail inbox sync for application updates, planned in [Email Automation Design](docs/EMAIL_AUTOMATION_DESIGN.md)
 - Demo screenshots and hosted portfolio walkthrough
 
 ## Screenshots

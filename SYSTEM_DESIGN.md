@@ -170,6 +170,8 @@ Current AWS resources:
 
 The current version includes email/password authentication with signed bearer tokens. Email verification, welcome emails, and Google OAuth are planned follow-ups that require provider credentials and production callback URLs.
 
+The planned Gmail automation design is documented in [Email Automation Design](docs/EMAIL_AUTOMATION_DESIGN.md). The first version will use `gmail.readonly`, manual sync, lightweight email metadata storage, and status history entries with `source = "email"`.
+
 ## Cost Analysis
 
 Free tier-friendly monthly footprint:
