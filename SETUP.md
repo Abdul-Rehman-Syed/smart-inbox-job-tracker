@@ -86,6 +86,7 @@ This project is deployed in `us-east-1` with a free-tier-friendly setup:
 - Backend: FastAPI Docker container on EC2
 - Database: private RDS PostgreSQL
 - CI/CD: GitHub Actions builds images, pushes to ECR, deploys through AWS Systems Manager
+- Cost control: Lambda and EventBridge Scheduler start/stop EC2 and RDS daily
 
 1. Create an AWS account and enable billing alerts.
 2. Create an IAM user for GitHub Actions with least-privilege permissions for ECR, S3, CloudFront invalidations, and SSM deployment support.
@@ -104,20 +105,33 @@ This project is deployed in `us-east-1` with a free-tier-friendly setup:
    - Security group: SSH from your IP only, HTTP 80 from anywhere, HTTPS 443 from anywhere
    - Attach an IAM role with `AmazonSSMManagedInstanceCore` and `AmazonEC2ContainerRegistryReadOnly`
    - Install Docker, AWS CLI, and Git
-6. Create private S3 bucket `sijt-frontend`.
-7. Create CloudFront distribution:
+6. Allocate and associate an Elastic IP with the EC2 backend so the CloudFront API origin remains stable.
+7. Create private S3 bucket `sijt-frontend`.
+8. Create CloudFront distribution:
    - Default origin: S3 bucket with Origin Access Control
-   - API origin: `ec2-13-221-118-35.compute-1.amazonaws.com` over HTTP port 80
+   - API origin: `ec2-32-198-175-75.compute-1.amazonaws.com` over HTTP port 80
    - Behavior `/api/*`: backend EC2 origin, all HTTP methods, `CachingDisabled`, `AllViewerExceptHostHeader`
    - Default behavior: S3 origin, `CachingOptimized`
    - Custom errors: map 403 and 404 to `/index.html` with status 200
-8. Add GitHub secrets listed in `README.md`.
-9. Manually run the `Test and Deploy` workflow from the `main` branch.
+9. Add GitHub secrets listed in `README.md`.
+10. Push to `main`. The `Test and Deploy` workflow runs tests and deploys automatically.
+11. Optional: manually run `Test and Deploy` from GitHub Actions if you need to redeploy without a code change.
 
 Current production endpoints:
 
 - Frontend: `https://d2k57hwu6y8pci.cloudfront.net`
 - Health check: `https://d2k57hwu6y8pci.cloudfront.net/api/health`
+
+## Cost Scheduler
+
+The deployed AWS environment includes a small Lambda function and two EventBridge Scheduler schedules:
+
+- `job-tracker-start-0800`: starts RDS and EC2 at 08:00 Europe/Berlin
+- `job-tracker-stop-2300`: stops EC2 and RDS at 23:00 Europe/Berlin
+
+The Lambda source and setup notes live in `infra/scheduler/`.
+
+While the stack is stopped, the CloudFront frontend may still load, but login/API requests will fail until EC2 and RDS are running again.
 
 ## EC2 Bootstrap Commands
 
@@ -171,4 +185,6 @@ docker run --rm ... job-tracker-backend:latest alembic upgrade head
 - Develop on feature branches.
 - Open PRs into `main`.
 - Protect `main` with required CI checks.
-- Use `develop` for test-only pushes when desired.
+- Pushes to `main` run tests and deploy automatically.
+- Pushes to `develop` run tests only.
+- Docs-only and scheduler-only changes are ignored by the deployment workflow.

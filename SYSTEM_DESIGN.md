@@ -10,7 +10,9 @@ User Browser
   -> PostgreSQL RDS protected by security group
 ```
 
-GitHub Actions builds and tests both applications. Manual production deployment from `main` pushes the backend image to ECR, asks AWS Systems Manager to run deployment commands on EC2, uploads frontend assets to S3, and invalidates CloudFront.
+GitHub Actions builds and tests both applications. Pushes to `main` automatically deploy after checks pass: the workflow pushes the backend image to ECR, asks AWS Systems Manager to run deployment commands on EC2, uploads frontend assets to S3, and invalidates CloudFront.
+
+AWS Lambda and EventBridge Scheduler reduce running costs by starting the EC2/RDS stack at 08:00 and stopping it at 23:00 Europe/Berlin.
 
 Production URL:
 
@@ -115,6 +117,8 @@ GET /api/health
 - RDS PostgreSQL stores application data.
 - Security groups allow database traffic only from EC2.
 - Systems Manager Run Command lets GitHub Actions deploy without opening SSH to GitHub.
+- Elastic IP keeps the EC2 backend origin stable across stop/start cycles.
+- Lambda and EventBridge Scheduler start and stop EC2/RDS daily for cost control.
 
 Current AWS resources:
 
@@ -123,9 +127,11 @@ Current AWS resources:
 | Frontend CDN | CloudFront `d2k57hwu6y8pci.cloudfront.net` |
 | Frontend storage | S3 bucket `sijt-frontend` |
 | Backend compute | EC2 instance `job-tracker-backend` |
+| Backend stable address | Elastic IP `32.198.175.75` |
 | Backend image registry | ECR repository `job-tracker-backend` |
 | Database | RDS PostgreSQL `job-tracker-db` |
 | Deployment control | AWS Systems Manager Run Command |
+| Cost automation | Lambda `job-tracker-start-stop` with EventBridge Scheduler |
 
 ## Scalability
 
@@ -147,6 +153,7 @@ Current AWS resources:
 - HTTPS is used for browser traffic through CloudFront.
 - SSH is not required for CI/CD. Deployment uses SSM Run Command.
 - S3 remains private and readable by CloudFront through Origin Access Control.
+- RDS accepts PostgreSQL traffic from the EC2 security group only.
 
 The current version includes email/password authentication with signed bearer tokens. Email verification, welcome emails, and Google OAuth are planned follow-ups that require provider credentials and production callback URLs.
 
@@ -159,6 +166,7 @@ Free tier-friendly monthly footprint:
 - S3: minimal static hosting storage
 - CloudFront: free tier transfer and requests for typical portfolio traffic
 - ECR: small storage footprint for a few Docker images
+- Lambda and EventBridge Scheduler: minimal usage for two scheduled invocations per day
 - ACM: free public certificates when a custom domain is added later
 
 Avoid NAT Gateway, Multi-AZ RDS, AWS WAF, large ALBs, and excessive CloudWatch retention if strict free-tier cost control matters.

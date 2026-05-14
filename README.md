@@ -58,7 +58,8 @@ The production seed workflow runs the same script through AWS Systems Manager an
 - Fully typed React API client
 - FastAPI response envelope and validation
 - Dockerized local and production workflows
-- GitHub Actions test and deployment pipeline
+- GitHub Actions test and automatic deployment pipeline
+- AWS Lambda and EventBridge Scheduler cost-control automation
 
 ## What This Demonstrates
 
@@ -68,14 +69,14 @@ The production seed workflow runs the same script through AWS Systems Manager an
 - Dashboard statistics and charts from backend aggregation
 - Production-style Dockerfiles for frontend and backend
 - CI checks for backend formatting/lint/tests and frontend lint/tests/build
-- AWS deployment with S3, CloudFront, EC2, ECR, RDS, and Systems Manager
+- AWS deployment with S3, CloudFront, EC2, ECR, RDS, Lambda, EventBridge, and Systems Manager
 
 ## Tech Stack
 
 - Frontend: React 18, TypeScript, Recharts, Axios, Vite, Jest, React Testing Library
 - Backend: Python 3.11, FastAPI, SQLAlchemy 2, Pydantic 2, Alembic, pytest
 - Database: PostgreSQL on AWS RDS
-- Deployment: S3 private bucket, CloudFront, EC2, ECR, RDS, AWS Systems Manager
+- Deployment: S3 private bucket, CloudFront, EC2, ECR, RDS, AWS Systems Manager, Lambda, EventBridge Scheduler
 
 ## Local Setup
 
@@ -169,7 +170,7 @@ Authorization: Bearer <access_token>
 
 ## Deployment
 
-The included GitHub Actions workflow runs tests on pushes and pull requests. Production deployment is triggered manually from the `main` branch through GitHub Actions `workflow_dispatch`.
+The included GitHub Actions workflow runs tests on pushes and pull requests. Pushes to `main` automatically deploy after backend and frontend checks pass. Manual `workflow_dispatch` remains available as a backup deployment button.
 
 Current production architecture:
 
@@ -178,6 +179,7 @@ Current production architecture:
 - EC2 runs the FastAPI Docker container and pulls images from ECR.
 - GitHub Actions deploys to EC2 through AWS Systems Manager Run Command, not public SSH.
 - RDS PostgreSQL stores persistent user and job data.
+- AWS Lambda and EventBridge Scheduler start the EC2/RDS stack at 08:00 and stop it at 23:00 Europe/Berlin to reduce running costs.
 
 Production URL:
 
